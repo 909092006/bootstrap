@@ -5,20 +5,26 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors());
+// 1. CONFIGURACIÓN DE CORS (Solo una vez y con la URL correcta)
+app.use(cors({
+  origin: 'https://bootstrap-gamma-three.vercel.app', // Nota: Sin la barra '/' al final
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+// 2. MIDDLEWARES
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// 3. RUTAS
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Index.html'));
 });
 
-// Ruta de prueba para saber si el servidor está vivo
 app.get('/health', (req, res) => {
   res.send('Servidor vivo y funcionando');
 });
 
-// API para obtener tareas con manejo de errores real
 app.get('/api/tasks', async (req, res) => {
   try {
     const [tasks] = await db.query("SELECT * FROM tasks ORDER BY id ASC");
@@ -30,15 +36,12 @@ app.get('/api/tasks', async (req, res) => {
     })));
   } catch (e) {
     console.error("ERROR EN DB:", e.message);
-    res.status(500).json({ error: "No se pudo conectar a la base de datos. Revisa tus variables en Railway." });
+    res.status(500).json({ error: "Error de conexión. Revisa Railway." });
   }
 });
 
-// ... (las demás rutas post, delete, etc., puedes dejarlas igual)
-
+// 4. PUERTO (Render usa process.env.PORT)
 const port = process.env.PORT || 3000;
-
-// Arrancamos el servidor
 app.listen(port, "0.0.0.0", () => {
   console.log(`>>> Servidor iniciado en puerto ${port}`);
 });
