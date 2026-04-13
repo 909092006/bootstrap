@@ -1,15 +1,10 @@
 {
   "name": "bootstrap",
   "version": "1.0.0",
-  "description": "Task Manager App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
