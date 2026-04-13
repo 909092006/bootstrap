@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:3000/api/tasks';
+// CORRECCIÓN IMPORTANTE: 
+// Usamos '/' para que funcione tanto en tu PC como en Railway automáticamente.
+const API_URL = '/api/tasks'; 
 
 let toDoList = [];
 let editingTaskId = null;
@@ -17,10 +19,14 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const taskListTable = document.getElementById('task-list');
 
 async function fetchTasks() {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    toDoList = data;
-    renderTasks();
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        toDoList = data;
+        renderTasks();
+    } catch (error) {
+        console.error("Error al obtener tareas:", error);
+    }
 }
 
 taskForm.addEventListener('submit', async (e) => {
@@ -73,6 +79,8 @@ taskListTable.addEventListener('click', (e) => {
 
 function openEdit(id){
     const task = toDoList.find(t => t.id == id);
+    if(!task) return;
+    
     editingTaskId = id;
 
     editTitleInput.value = task.title;
@@ -91,7 +99,7 @@ editForm.addEventListener('submit', async (e)=>{
         completed: editCompletedCheckbox.checked
     };
 
-    await fetch(API_URL + '/' + editingTaskId, {
+    await fetch(`${API_URL}/${editingTaskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taskData)
@@ -102,8 +110,10 @@ editForm.addEventListener('submit', async (e)=>{
 });
 
 async function deleteTask(id){
-    await fetch(API_URL + '/' + id, { method: 'DELETE' });
-    fetchTasks();
+    if(confirm('¿Estás seguro de eliminar esta tarea?')) {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        fetchTasks();
+    }
 }
 
 cancelEditBtn.addEventListener('click', ()=>{
