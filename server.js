@@ -13,58 +13,41 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Index.html'));
 });
 
+// --- RUTAS API ---
 app.get('/api/tasks', async (req, res) => {
-  const [tasks] = await db.query("SELECT * FROM tasks ORDER BY id ASC");
-  res.json(tasks.map(t => ({
-      id: t.id,
-      title: t.title,
-      priority: t.priority,
-      completed: Boolean(t.isCompleted)
-  })));
-});
-
-app.get('/api/tasks/:id', async (req, res) => {
-  const [task] = await db.query("SELECT * FROM tasks WHERE id=?", [req.params.id]);
-  res.json({
-    id: task[0].id,
-    title: task[0].title,
-    priority: task[0].priority,
-    completed: Boolean(task[0].isCompleted)
-  });
+  try {
+    const [tasks] = await db.query("SELECT * FROM tasks ORDER BY id ASC");
+    res.json(tasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        priority: t.priority,
+        completed: Boolean(t.isCompleted)
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/tasks', async (req, res) => {
-  const { title, priority, completed } = req.body;
-
-  const [result] = await db.query(
-    "INSERT INTO tasks(title, priority, isCompleted) VALUES(?,?,?)",
-    [title, priority, completed ? 1 : 0]
-  );
-
-  res.json({ id: result.insertId, title, priority, completed });
-});
-
-app.put('/api/tasks/:id', async (req, res) => {
-  const { title, priority, completed } = req.body;
-
-  await db.query(
-    "UPDATE tasks SET title=?, priority=?, isCompleted=? WHERE id=?",
-    [title, priority, completed ? 1 : 0, req.params.id]
-  );
-
-  res.json({ message: "Updated" });
+  try {
+    const { title, priority, completed } = req.body;
+    const [result] = await db.query(
+      "INSERT INTO tasks(title, priority, isCompleted) VALUES(?,?,?)",
+      [title, priority, completed ? 1 : 0]
+    );
+    res.json({ id: result.insertId, title, priority, completed });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.delete('/api/tasks/:id', async (req, res) => {
-  await db.query("DELETE FROM tasks WHERE id=?", [req.params.id]);
-  res.json({ message: "Deleted" });
+  try {
+    await db.query("DELETE FROM tasks WHERE id=?", [req.params.id]);
+    res.json({ message: "Deleted" });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Use `PORT` provided in environment or default to 3000
+// --- CONFIGURACIÓN PARA RAILWAY (Basado en la documentación que pasaste) ---
 const port = process.env.PORT || 3000;
 
-// Listen on `port` and 0.0.0.0
-async function bootstrap() {
-  // ...
-  await app.listen(port, "0.0.0.0");
-}
+// Escuchamos en port y en el host 0.0.0.0 como pide la guía oficial
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Aplicación escuchando en el puerto ${port} con host 0.0.0.0`);
+});
