@@ -60,5 +60,11 @@ app.delete('/api/tasks/:id', async (req, res) => {
   res.json({ message: "Deleted" });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Use `PORT` provided in environment or default to 3000
+const port = process.env.PORT || 3000;
+
+// Listen on `port` and 0.0.0.0
+async function bootstrap() {
+  // ...
+  await app.listen(port, "0.0.0.0");
+}
