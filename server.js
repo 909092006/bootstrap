@@ -13,7 +13,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Index.html'));
 });
 
-// --- RUTAS API ---
+// Ruta de prueba para saber si el servidor está vivo
+app.get('/health', (req, res) => {
+  res.send('Servidor vivo y funcionando');
+});
+
+// API para obtener tareas con manejo de errores real
 app.get('/api/tasks', async (req, res) => {
   try {
     const [tasks] = await db.query("SELECT * FROM tasks ORDER BY id ASC");
@@ -23,31 +28,17 @@ app.get('/api/tasks', async (req, res) => {
         priority: t.priority,
         completed: Boolean(t.isCompleted)
     })));
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error("ERROR EN DB:", e.message);
+    res.status(500).json({ error: "No se pudo conectar a la base de datos. Revisa tus variables en Railway." });
+  }
 });
 
-app.post('/api/tasks', async (req, res) => {
-  try {
-    const { title, priority, completed } = req.body;
-    const [result] = await db.query(
-      "INSERT INTO tasks(title, priority, isCompleted) VALUES(?,?,?)",
-      [title, priority, completed ? 1 : 0]
-    );
-    res.json({ id: result.insertId, title, priority, completed });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
+// ... (las demás rutas post, delete, etc., puedes dejarlas igual)
 
-app.delete('/api/tasks/:id', async (req, res) => {
-  try {
-    await db.query("DELETE FROM tasks WHERE id=?", [req.params.id]);
-    res.json({ message: "Deleted" });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// --- CONFIGURACIÓN PARA RAILWAY (Basado en la documentación que pasaste) ---
 const port = process.env.PORT || 3000;
 
-// Escuchamos en port y en el host 0.0.0.0 como pide la guía oficial
+// Arrancamos el servidor
 app.listen(port, "0.0.0.0", () => {
-  console.log(`Aplicación escuchando en el puerto ${port} con host 0.0.0.0`);
+  console.log(`>>> Servidor iniciado en puerto ${port}`);
 });
