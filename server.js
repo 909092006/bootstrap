@@ -7,7 +7,7 @@ const app = express();
 
 // 1. CONFIGURACIÓN DE CORS (Solo una vez y con la URL correcta)
 app.use(cors({
-  origin: 'https://bootstrap-gamma-three.vercel.app', // Nota: Sin la barra '/' al final
+  origin: '*', // Nota: Sin la barra '/' al final
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
