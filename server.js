@@ -7,7 +7,7 @@ const app = express();
 
 // 1. CONFIGURACIÓN DE CORS (Solo una vez y con la URL correcta)
 app.use(cors({
-  origin: '*', // Nota: Sin la barra '/' al final
+  origin: 'https://sweet-khapse-14dc31.netlify.app', // Nota: Sin la barra '/' al final
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
