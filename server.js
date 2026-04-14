@@ -14,14 +14,8 @@ app.use(cors({
 
 // 2. MIDDLEWARES
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
-// 3. RUTAS
-
-// Salud del servidor
-app.get('/health', (req, res) => {
-  res.send('Servidor vivo y funcionando');
-});
+// 3. RUTAS DE LA API (Deben ir antes de express.static)
 
 // OBTENER todas las tareas
 app.get('/api/tasks', async (req, res) => {
@@ -39,7 +33,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-// CREAR una nueva tarea
+// CREAR tarea
 app.post('/api/tasks', async (req, res) => {
   const { title, priority } = req.body;
   try {
@@ -47,14 +41,14 @@ app.post('/api/tasks', async (req, res) => {
       "INSERT INTO tasks (title, priority, isCompleted) VALUES (?, ?, 0)", 
       [title, priority]
     );
-    res.status(201).json({ success: true, message: "Tarea creada" });
+    res.status(201).json({ success: true });
   } catch (e) {
-    console.error("ERROR EN POST /api/tasks:", e.message);
-    res.status(500).json({ error: "Error al crear la tarea." });
+    console.error("ERROR EN POST:", e.message);
+    res.status(500).json({ error: "Error al crear" });
   }
 });
 
-// ACTUALIZAR una tarea
+// ACTUALIZAR tarea
 app.put('/api/tasks/:id', async (req, res) => {
   const { id } = req.params;
   const { title, priority, completed } = req.body;
@@ -63,31 +57,32 @@ app.put('/api/tasks/:id', async (req, res) => {
       "UPDATE tasks SET title = ?, priority = ?, isCompleted = ? WHERE id = ?", 
       [title, priority, completed ? 1 : 0, id]
     );
-    res.json({ success: true, message: "Tarea actualizada" });
+    res.json({ success: true });
   } catch (e) {
-    console.error("ERROR EN PUT /api/tasks:", e.message);
-    res.status(500).json({ error: "Error al actualizar la tarea." });
+    console.error("ERROR EN PUT:", e.message);
+    res.status(500).json({ error: "Error al actualizar" });
   }
 });
 
-// ELIMINAR una tarea
+// ELIMINAR tarea
 app.delete('/api/tasks/:id', async (req, res) => {
-  const { id } = req.params;
   try {
-    await db.query("DELETE FROM tasks WHERE id = ?", [id]);
-    res.json({ success: true, message: "Tarea eliminada" });
+    await db.query("DELETE FROM tasks WHERE id = ?", [req.params.id]);
+    res.json({ success: true });
   } catch (e) {
-    console.error("ERROR EN DELETE /api/tasks:", e.message);
-    res.status(500).json({ error: "Error al eliminar la tarea." });
+    console.error("ERROR EN DELETE:", e.message);
+    res.status(500).json({ error: "Error al eliminar" });
   }
 });
 
-// Servir el Index.html para cualquier otra ruta
+// 4. ARCHIVOS ESTÁTICOS (Al final para no interferir con la API)
+app.use(express.static(path.join(__dirname)));
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'Index.html'));
 });
 
-// 4. PUERTO
+// 5. PUERTO
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log(`>>> Servidor iniciado en puerto ${port}`);
