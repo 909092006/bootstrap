@@ -68,9 +68,13 @@ app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'Index.html'));
 });
+app.use(express.static(path.join(__dirname)));
 
-// 5. PUERTO
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Index.html'));
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
-  console.log(`>>> Servidor iniciado en puerto ${port}`);
+    console.log(`>>> Servidor iniciado en puerto ${port}`);
 });
