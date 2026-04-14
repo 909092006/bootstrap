@@ -1,35 +1,31 @@
 const API_URL = 'https://bootstrap-cqef.onrender.com/api/tasks';
 
 let toDoList = [];
-let editingTaskId = null;
 
 const taskForm = document.getElementById('task-form');
 const taskTitleInput = document.getElementById('task-title');
 const taskPrioritySelect = document.getElementById('task-priority');
-
-const editSection = document.getElementById('edit-section');
-const editForm = document.getElementById('edit-form');
-const editTitleInput = document.getElementById('edit-title');
-const editPrioritySelect = document.getElementById('edit-priority');
-const editCompletedCheckbox = document.getElementById('edit-completed');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
-
 const taskListTable = document.getElementById('task-list');
 
+// Cargar tareas al iniciar
 async function fetchTasks() {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    toDoList = data;
-    renderTasks();
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error en la respuesta');
+        const data = await response.json();
+        toDoList = data;
+        renderTasks();
+    } catch (error) {
+        console.error("Error cargando tareas:", error);
+    }
 }
 
+// Crear tarea
 taskForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const taskData = {
         title: taskTitleInput.value,
-        priority: taskPrioritySelect.value,
-        completed: false
+        priority: taskPrioritySelect.value
     };
 
     await fetch(API_URL, {
@@ -42,72 +38,29 @@ taskForm.addEventListener('submit', async (e) => {
     fetchTasks();
 });
 
+// Dibujar la tabla
 function renderTasks() {
     taskListTable.innerHTML = '';
-
     toDoList.forEach(task => {
-        const completed = task.completed ? 'Yes' : 'No';
-
         taskListTable.innerHTML += `
         <tr>
             <td>${task.id}</td>
             <td>${task.title}</td>
             <td>${task.priority}</td>
-            <td>${completed}</td>
+            <td>${task.completed ? 'Yes' : 'No'}</td>
             <td>
-                <button class="btn btn-warning btn-sm edit-btn" data-id="${task.id}">Edit</button>
-                <button class="btn btn-danger btn-sm delete-btn" data-id="${task.id}">Delete</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Delete</button>
             </td>
         </tr>`;
     });
 }
 
-taskListTable.addEventListener('click', (e) => {
-    if(e.target.classList.contains('edit-btn')){
-        openEdit(e.target.dataset.id);
+// Eliminar tarea
+async function deleteTask(id) {
+    if(confirm('¿Seguro?')) {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        fetchTasks();
     }
-    if(e.target.classList.contains('delete-btn')){
-        deleteTask(e.target.dataset.id);
-    }
-});
-
-function openEdit(id){
-    const task = toDoList.find(t => t.id == id);
-    editingTaskId = id;
-
-    editTitleInput.value = task.title;
-    editPrioritySelect.value = task.priority;
-    editCompletedCheckbox.checked = task.completed;
-
-    editSection.style.display = 'block';
 }
-
-editForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-
-    const taskData = {
-        title: editTitleInput.value,
-        priority: editPrioritySelect.value,
-        completed: editCompletedCheckbox.checked
-    };
-
-    await fetch(API_URL + '/' + editingTaskId, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData)
-    });
-
-    editSection.style.display = 'none';
-    fetchTasks();
-});
-
-async function deleteTask(id){
-    await fetch(API_URL + '/' + id, { method: 'DELETE' });
-    fetchTasks();
-}
-
-cancelEditBtn.addEventListener('click', ()=>{
-    editSection.style.display = 'none';
-});
 
 fetchTasks();
